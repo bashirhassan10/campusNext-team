@@ -226,3 +226,4 @@ __pycache__/
 data/tickets.json
 *.swp
 *.swo
+/tickets.json
