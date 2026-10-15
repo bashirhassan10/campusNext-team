@@ -88,7 +88,7 @@ def get_ticket_queue(tickets):
 
     unresolved = [
         ticket for ticket in tickets
-        if ticket["status"] != "resolved"
+        if ticket["status"] == "open"
     ]
 
     return sorted(
