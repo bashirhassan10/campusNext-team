@@ -1,37 +1,37 @@
-# CampusFlow Design Decisions
+# CampusFlow Next — Design Decisions
 
-## 1. Python CLI instead of a web interface
-The assessment project is implemented as a Python command-line application. `main.py` provides a menu so a mentor can exercise all major functions without modifying code.
+## Architecture
 
-## 2. Separate responsibilities
-- `campusflow/tickets.py`: validate ticket inputs, calculate priority, create and retrieve tickets.
-- `campusflow/workflow.py`: assignment, status transitions, reopening, and priority queue.
-- `campusflow/reports.py`: ticket counts by status and priority.
-- `campusflow/storage.py`: load/save JSON without changing business logic.
-- `main.py`: user prompts and coordination between modules.
+A Python 3 standard-library CLI (`main.py`) delegates business logic to `campusflow/tickets.py`, `workflow.py`, `search.py`, `reports.py` and `storage.py`. This separation supports isolated unit tests and team contributions.
 
-Keeping these concerns separate supports team collaboration and unit testing.
+## Ticket model and priority
 
-## 3. Ticket representation and IDs
-Tickets are dictionaries with `id`, `title`, `category`, `urgency`, `affected_users`, `priority`, `status`, and `assigned_to`. IDs use `T001`, `T002`, etc., generated from the maximum existing numeric ID to avoid reuse in the current dataset.
+Each ticket is a dictionary with `id`, `title`, `category`, `urgency`, `affected_users`, `priority`, `status`, `assigned_to` and `notes`. IDs follow `T001`, `T002`, etc., based on the maximum ID in the current dataset. Priority is calculated from urgency and affected-user count.
 
-## 4. Priority and workflow rules
-Priority is derived from urgency and affected user count. The unresolved queue sorts critical before high, medium, and low. Tickets must be assigned before progressing from `open` to `in_progress`; resolution requires `in_progress`; resolved tickets can be reopened explicitly.
+## Workflow and queue
 
-## 5. JSON persistence
-The CLI loads `tickets.json` at startup and saves it after successful ticket creation, assignment, status changes, and reopening. Missing files produce an empty list. Malformed JSON or invalid record structure produces an error instead of silently discarding saved data. Saving uses a temporary file and replacement to reduce the risk of partial writes.
+Tickets begin `open`. Assignment is required before `in_progress`; resolution requires `in_progress`; `resolved` tickets must be explicitly reopened before status changes. The queue sorts **open** tickets by critical/high/medium/low priority and then ticket ID. Reports treat both `open` and `in_progress` as unresolved, so the queue is intentionally narrower than the unresolved count.
 
-**Tradeoffs:** JSON is simple and requires no third-party packages, but is not suitable for concurrent writers or large-scale multi-user deployment. A database would be preferable for that use case. The default file is relative to the current working directory.
+## Notes
 
-## 6. Tests and auditability
-Existing unit tests cover the ticket and workflow modules. Added CLI integration tests exercise menu paths; storage tests use temporary directories so they do not overwrite real ticket data. The complete suite must be executed against the final branch before claiming it passes.
+Notes are stored inside tickets as `note_id`, `author` and `message`. Author cannot be blank; messages are trimmed and must be 5–300 characters. Note IDs increment per ticket (`N001`, etc.). Notes may be added only while the ticket is `open` or `in_progress`. Options 11/12 add and view notes.
 
-## 7. Known limitations
-- Single-process local CLI, not a network service.
-- No authentication or role-based permissions.
-- JSON data can be edited outside the program; validation checks required fields, not every possible semantic inconsistency.
-- Failed disk writes are reported, but an in-memory mutation may already have happened in that session.
-- Final mentor acceptance depends on the exact assessment rubric and verified test results.
+## Search and reporting
 
-## 8. Team review
-Engineer A: Bashir Hassan. Engineer B: Timothy Yusuf. Each engineer should confirm the design choices and their contributions before final submission.
+Search performs case-insensitive title substring matching and combines supplied category, status and priority filters with AND semantics. Reports provide total tickets, breakdowns by status/priority/category, resolved and unresolved counts, and resolution percentage (0% for an empty dataset).
+
+## Persistence
+
+The application loads `tickets.json` from the working directory and saves changes to a validated JSON file via temporary-file replacement. Invalid saved data is rejected rather than silently overwritten. Older tickets lacking `notes` load with an empty list. The local JSON file is gitignored.
+
+## Testing and review
+
+The user reported 94 passing tests on local `main` after PR #14. GitHub PR #14 displayed zero configured checks. See `docs/final-review.md` for evidence and remaining verification.
+
+## Limitations
+
+Single local user, no authentication or web service, no concurrency guarantees, and no CI requirement verified. Failed disk writes may occur after an in-memory mutation. The exact mentor rubric has not been provided for independent comparison.
+
+## Team attribution
+
+Engineer A: Bashir Hassan. Current Engineer B: GitHub user `ngirinya` (full name to be confirmed). Historical repository documents name Timothy Yusuf for earlier work; this should be verified rather than silently reassigned.
