@@ -1,4 +1,3 @@
-
 import unittest
 
 from campusflow.workflow import (
@@ -8,6 +7,7 @@ from campusflow.workflow import (
     reopen_ticket,
     get_ticket_queue,
 )
+
 
 class TestTicketAssignment(unittest.TestCase):
     def setUp(self):
@@ -47,10 +47,6 @@ class TestTicketAssignment(unittest.TestCase):
         result = find_ticket(self.tickets, "T999")
 
         self.assertIsNone(result)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class TestTicketWorkflow(unittest.TestCase):
@@ -180,7 +176,25 @@ class TestTicketQueue(unittest.TestCase):
             original_ids,
         )
 
+    def test_in_progress_tickets_are_excluded(self):
+        tickets = [
+            {
+                "id": "T001",
+                "status": "in_progress",
+                "priority": "critical",
+            },
+            {
+                "id": "T002",
+                "status": "open",
+                "priority": "high",
+            },
+        ]
 
-   
+        queue = get_ticket_queue(tickets)
 
-    
+        self.assertEqual(len(queue), 1)
+        self.assertEqual(queue[0]["id"], "T002")
+
+
+if __name__ == "__main__":
+    unittest.main()
