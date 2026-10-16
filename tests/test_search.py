@@ -61,6 +61,24 @@ class SearchTicketsTests(unittest.TestCase):
             ["T001"],
         )
 
+    def test_case_insensitive_category_status_and_priority(self):
+        self.assertEqual(
+            [t["id"] for t in search_tickets(
+                self.tickets, category="hArDwArE", status="IN_PROGRESS",
+                priority="MEDIUM"
+            )],
+            ["T002"],
+        )
+
+    def test_case_insensitive_filters_with_whitespace(self):
+        self.assertEqual(
+            [t["id"] for t in search_tickets(
+                self.tickets, category=" network ", status=" OPEN ",
+                priority=" HIGH ", title="WIFI"
+            )],
+            ["T001"],
+        )
+
     def test_filters_are_combined_with_and(self):
         result = search_tickets(
             self.tickets, title="wifi", category="Network", status="open"
