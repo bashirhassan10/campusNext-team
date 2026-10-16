@@ -40,6 +40,17 @@ class TestInteractiveCLI(unittest.TestCase):
     # EXISTING CLI TESTS
     # =====================================
 
+    def test_search_accepts_mixed_case_filters(self):
+        output = self.run_cli([
+            "1", "Internet down", "Network", "high", "12",
+            "10", "INTERNET", "nEtWoRk", "OPEN", "CRITICAL",
+            "9",
+        ])
+
+        self.assertIn("=== SEARCH RESULTS ===", output)
+        self.assertIn("ID: T001", output)
+        self.assertNotIn("Invalid input.", output)
+
     def test_menu_exit(self):
         output = self.run_cli(["9"])
 
