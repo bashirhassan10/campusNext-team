@@ -7,6 +7,16 @@ VALID_PRIORITIES = ("critical", "high", "medium", "low")
 
 def search_tickets(tickets, title="", category="", status="", priority=""):
     """Return tickets matching every supplied filter, without modifying tickets."""
+    if category:
+        category = next(
+            (item for item in VALID_CATEGORIES if item.casefold() == category.strip().casefold()),
+            category,
+        )
+    if status:
+        status = status.strip().casefold()
+    if priority:
+        priority = priority.strip().casefold()
+
     if category and category not in VALID_CATEGORIES:
         raise ValueError(
             f"Invalid category '{category}'. "
