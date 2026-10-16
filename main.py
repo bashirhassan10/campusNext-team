@@ -31,8 +31,9 @@ def get_valid_filter(prompt, valid_options):
         if not value:
             return ""
 
-        if value in valid_options:
-            return value
+        for option in valid_options:
+            if value.casefold() == option.casefold():
+                return option
 
         print(
             f"Invalid input. Choose one of: "
