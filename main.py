@@ -74,6 +74,8 @@ def search_view(tickets):
         show_ticket(ticket)
 
 
+
+
 def understanding_check():
     answers = []
     explanations = []
@@ -213,9 +215,9 @@ def main():
                 elif choice == "4":
                     new_status = input(
                         "New status (open/in_progress/resolved): "
-                    ).strip()
+                    ).strip().lower()
 
-                    if new_status.casefold() == "open":
+                    if new_status == "open":
                         try:
                             reopen_ticket(tickets, ticket_id)
                         except ValueError as error:
